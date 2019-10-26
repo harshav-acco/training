@@ -1,0 +1,23 @@
+.div-table {
+    display: table;
+    border: 1px solid grey;
+    margin: 0 auto;
+}
+.div-table-row {
+    display: table-row;
+}
+.div-table-row:hover {
+    background: #fff6f6;
+}
+.div-table-header {
+    background: #eee;
+    font-weight: bold;
+}
+.div-table-header:hover {
+    background: #eee;
+}
+.div-table-cell {
+    display: table-cell;
+    border-right: 1px solid grey;
+    padding: 10px;
+}

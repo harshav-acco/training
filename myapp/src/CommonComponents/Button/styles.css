@@ -1,0 +1,16 @@
+.button {
+    margin-right: 2px;
+    border-radius: 4px;
+    height: 26px;
+    color: white;
+    cursor: pointer;
+}
+.delete {
+    background: red;
+}
+.cancel, .edit {
+    background: orange;
+}
+.save {
+    background: green;
+}
