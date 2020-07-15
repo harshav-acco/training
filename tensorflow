@@ -1,0 +1,101 @@
+import React, { Component } from 'react';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+import * as tf from '@tensorflow/tfjs';
+import { Camera } from 'expo-camera';
+import * as Permissions from 'expo-permissions';
+import { cameraWithTensors } from '@tensorflow/tfjs-react-native';
+import * as posenet from "@tensorflow-models/posenet";
+
+
+const TensorCamera = cameraWithTensors(Camera);
+
+export default class SquatCounter extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      tfReady: false,
+      permissionsGranted: false,
+      isModelReady: false,
+    };
+  }
+
+  async componentWillMount() {
+    const { status } = await Permissions.askAsync(Permissions.CAMERA);
+    this.setState({ permissionsGranted: status === 'granted' });
+  }
+
+  async componentDidMount() {
+    await tf.setBackend("cpu");
+    await tf.ready();
+    this.setState({
+      tfReady: true,
+    });
+    this.model = await posenet.load();
+    this.setState({ isModelReady: true });
+  }
+
+  handleCameraStream = (images, updatePreview, gl) => {
+    const loop = async () => {
+      const nextImageTensor = images.next().value;
+      this.model.estimateMultiplePoses(nextImageTensor, 0.5, false, 32);
+      //
+      // do something with tensor here
+      //
+
+      // if autorender is false you need the following two lines.
+      // updatePreview();
+      // gl.endFrameEXP();
+      requestAnimationFrame(loop);
+    };
+    loop();
+  }
+
+  render() {
+    let textureDims;
+    if (Platform.OS === 'ios') {
+      textureDims = {
+        height: 1920,
+        width: 1080,
+      };
+    } else {
+      textureDims = {
+        height: 1200,
+        width: 1600,
+      };
+    }
+    if (this.state.tfReady === true && this.state.isModelReady === true) {
+      return (
+        <View style={{ flex: 1 }}>
+          <TensorCamera
+            style={styles.camera}
+            type={Camera.Constants.Type.front}
+            cameraTextureHeight={textureDims.height}
+            cameraTextureWidth={textureDims.width}
+            resizeHeight={200}
+            resizeWidth={152}
+            resizeDepth={3}
+            onReady={this.handleCameraStream}
+            autorender={true}
+          ></TensorCamera>
+        </View>
+      );
+    } else {
+      return (
+        <View>
+          <Text>TF not ready</Text>
+        </View>
+      );
+    }
+  }
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  camera: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+});
